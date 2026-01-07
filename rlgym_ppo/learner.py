@@ -75,7 +75,8 @@ class Learner(object):
             random_seed: int = 123,
             n_checkpoints_to_keep: int = 5,
             shm_buffer_size: int = 8192,
-            device: str = "auto"):
+            device: str = "auto",
+            use_amp: bool = True):
 
         assert (
                 env_create_function is not None
@@ -120,6 +121,7 @@ class Learner(object):
         self.gae_gamma = gae_gamma
         self.return_stats = WelfordRunningStat(1)
         self.epoch = 0
+        self.use_amp = use_amp
 
         self.experience_buffer = ExperienceBuffer(
             self.exp_buffer_size, seed=random_seed, device="cpu"
@@ -162,6 +164,7 @@ class Learner(object):
             critic_lr=critic_lr,
             clip_range=ppo_clip_range,
             ent_coef=ppo_ent_coef,
+            use_amp=self.use_amp,
         )
 
         self.agent.policy = self.ppo_learner.policy
@@ -186,6 +189,7 @@ class Learner(object):
             "policy_lr": policy_lr,
             "critic_lr": critic_lr,
             "shm_buffer_size": shm_buffer_size,
+            "use_amp": use_amp,
         }
 
         self.wandb_run = wandb_run

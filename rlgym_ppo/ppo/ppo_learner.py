@@ -24,6 +24,7 @@ class PPOLearner(object):
         ent_coef,
         mini_batch_size,
         device,
+        use_amp: bool = True,
     ):
         self.device = device
 
@@ -58,6 +59,10 @@ class PPOLearner(object):
             self.value_net.parameters(), lr=critic_lr
         )
         self.value_loss_fn = torch.nn.MSELoss()
+
+        # Mixed precision on CUDA to speed up forward/backward when available.
+        self.amp_enabled = use_amp and "cuda" in str(device)
+        self.grad_scaler = torch.amp.GradScaler(device="cuda", enabled=self.amp_enabled)
 
         # Calculate parameter counts
         policy_params = self.policy.parameters()
