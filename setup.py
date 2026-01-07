@@ -29,6 +29,7 @@ setup(
         'gym-notices==0.0.8',
         'Jinja2>3.0',
         'mpmath>1.0',
+        'numba>=0.63.1',
         'numpy>1.21',
         'sympy>1.10',
         'torch>1.13',

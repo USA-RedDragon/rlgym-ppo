@@ -362,8 +362,10 @@ class Learner(object):
 
         # Predict the expected returns at each state.
         t0 = time.perf_counter()
-        val_preds = value_net(val_inp).cpu().flatten().tolist()
-        torch.cuda.empty_cache()
+        
+        # Keep val_preds as tensor on GPU to avoid CPU sync
+        val_preds = value_net(val_inp).flatten()
+        # torch.cuda.empty_cache() # Unnecessary sync point + overhead
         t1 = time.perf_counter()
 
         # Compute the desired reinforcement learning quantities.
@@ -384,7 +386,7 @@ class Learner(object):
             # Update the running statistics about the returns.
             n_to_increment = min(self.max_returns_per_stats_increment, len(returns))
 
-            self.return_stats.increment(returns[:n_to_increment], n_to_increment)
+            self.return_stats.increment(returns[:n_to_increment].cpu().numpy(), n_to_increment)
 
         # Add our new experience to the buffer.
         self.experience_buffer.submit_experience(
