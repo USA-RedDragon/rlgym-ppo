@@ -16,6 +16,7 @@ def batched_agent_process(proc_id, endpoint, shm_buffer, shm_offset, shm_size, s
     import pickle
     import socket
     import time
+    import select
 
     import gym
     import numpy as np
@@ -98,6 +99,13 @@ def batched_agent_process(proc_id, endpoint, shm_buffer, shm_offset, shm_size, s
         last_render_time = time.time()
         render_time_compensation = 0
         while True:
+            if render:
+                poll_delay = render_delay if (render_delay is not None and render_delay > 0) else 1.0/60.0
+                readable, _, _ = select.select([pipe], [], [], poll_delay)
+                if not readable:
+                    env.render()
+                    continue
+
             message_bytes = pipe.recv(4096)
             message = frombuffer(message_bytes, dtype=np.float32)
             # message = byte_headers.unpack_message(message_bytes)
